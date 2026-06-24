@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CleanUp - Jasa Cleaning Service</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --teal: #0d9488;
+            --teal-light: #14b8a6;
+            --teal-pale: #ccfbf1;
+            --teal-dark: #0f766e;
+            --slate: #0f172a;
+            --slate-mid: #1e293b;
+            --slate-soft: #334155;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --white: #ffffff;
+            --cream: #f8fafc;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--cream);
+            color: var(--slate);
+            min-height: 100vh;
+        }
+
+
+        /* AUTH OVERLAY */
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0d9488 100%);
+            z-index: 9999;
+            display: flex; align-items: flex-start; justify-content: center;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+        }
+        .auth-overlay.hidden { display: none; }
+
+        .auth-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+        }
+        .auth-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem; font-weight: 800;
+            color: var(--slate); text-align: center; margin-bottom: 0.25rem;
+        }
+        .auth-logo span { color: var(--teal); }
+        .auth-subtitle { text-align: center; color: var(--gray); font-size: 0.875rem; margin-bottom: 2rem; }
+        .auth-tabs { display: flex; background: #f1f5f9; border-radius: 10px; padding: 4px; margin-bottom: 1.75rem; }
+        .auth-tab {
+            flex: 1; text-align: center; padding: 0.6rem;
+            border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.875rem;
+            color: var(--gray); border: none; background: transparent; font-family: 'DM Sans', sans-serif;
+            transition: all 0.2s;
+        }
+        .auth-tab.active { background: #fff; color: var(--teal-dark); box-shadow: 0 1px 6px rgba(0,0,0,0.12); }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        .auth-group { margin-bottom: 1rem; }
+        .auth-group label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--slate-soft); margin-bottom: 0.4rem; }
+        .auth-group input, .auth-group select {
+            width: 100%; padding: 0.7rem 1rem; border: 1.5px solid var(--gray-light);
+            border-radius: 10px; font-size: 0.875rem; font-family: 'DM Sans', sans-serif;
+            transition: border 0.2s; outline: none; color: var(--slate);
+        }
+        .auth-group input:focus, .auth-group select:focus { border-color: var(--teal); }
+        .role-picker { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+        .role-card {
+            flex: 1; border: 2px solid var(--gray-light); border-radius: 12px;
+            padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s;
+        }
+        .role-card:hover { border-color: var(--teal-light); background: #f0fdf9; }
+        .role-card.selected { border-color: var(--teal); background: var(--teal-pale); }
+        .role-card .role-icon { font-size: 2rem; margin-bottom: 0.25rem; }
+        .role-card .role-label { font-weight: 600; font-size: 0.8rem; color: var(--slate); }
+        .role-card .role-desc { font-size: 0.7rem; color: var(--gray); margin-top: 0.2rem; }
+        .btn-auth {
+            width: 100%; padding: 0.8rem; background: var(--teal);
+            color: #fff; border: none; border-radius: 10px; font-size: 0.95rem;
+            font-weight: 600; cursor: pointer; font-family: 'Syne', sans-serif;
+            margin-top: 0.5rem; transition: background 0.2s;
+        }
+        .btn-auth:hover { background: var(--teal-dark); }
+        .auth-error { color: var(--danger); font-size: 0.8rem; text-align: center; margin-bottom: 0.75rem; display: none; }
+
+        /* USER INFO in nav */
+        .nav-user {
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .nav-user-info { text-align: right; }
+        .nav-user-name { color: #fff; font-size: 0.85rem; font-weight: 600; }
+        .nav-user-role {
+            font-size: 0.7rem; font-weight: 600; padding: 2px 8px;
+            border-radius: 20px; color: #fff;
+        }
+        .nav-user-role.pelanggan { background: var(--teal); }
+        .nav-user-role.pekerja { background: #7c3aed; }
+        .btn-logout {
+            background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);
+            color: #fca5a5; padding: 0.4rem 0.85rem; border-radius: 8px;
+            cursor: pointer; font-size: 0.8rem; font-weight: 500;
+            font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+        }
+        .btn-logout:hover { background: rgba(239,68,68,0.3); color: #fff; }
+
+        /* HEADER */
+        header {
+            background: var(--slate);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+
+        .logo span { color: var(--teal-light); }
+
+        nav { display: flex; gap: 0.25rem; }
+
+        nav button {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        nav button:hover, nav button.active {
+            background: var(--slate-mid);
+            color: var(--white);
+        }
+
+        nav button.active { color: var(--teal-light); }
+
+        /* LAYOUT */
+        main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* PAGE HEADER */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        .page-header h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--slate);
+        }
+
+        .page-header p { color: var(--gray); font-size: 0.875rem; margin-top: 0.25rem; }
+
+        /* STATS ROW (Dashboard) */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            border: 1px solid var(--gray-light);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+        .stat-card .stat-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-card .stat-value {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--slate);
+        }
+
+        .stat-card .stat-label { font-size: 0.8rem; color: var(--gray); margin-top: 0.25rem; }
+
+        /* FORMS */
+        .form-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.75rem;
+            border: 1px solid var(--gray-light);
+            margin-bottom: 2rem;
+        }
+
+        .form-card h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            color: var(--slate);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+        .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+
+        label { font-size: 0.8rem; font-weight: 500; color: var(--slate-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        input, select, textarea {
+            padding: 0.65rem 0.875rem;
+            border: 1.5px solid var(--gray-light);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--slate);
+            background: var(--cream);
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus { border-color: var(--teal); background: white; }
+
+        /* BUTTONS */
+        .btn {
+            padding: 0.65rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-primary { background: var(--teal); color: white; }
+        .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); }
+
+        .btn-danger { background: #fee2e2; color: var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+
+        .btn-warning { background: #fef3c7; color: #92400e; }
+        .btn-warning:hover { background: var(--warning); color: white; }
+
+        .btn-success { background: #d1fae5; color: #065f46; }
+        .btn-success:hover { background: var(--success); color: white; }
+
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+        /* TABLES */
+        .table-card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--gray-light);
+            overflow: hidden;
+        }
+
+        .table-card h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            color: var(--slate);
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--cream); padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 0.875rem 1rem; border-top: 1px solid var(--gray-light); font-size: 0.875rem; vertical-align: middle; }
+        tr:hover td { background: #f8fafc; }
+
+        /* BADGES */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.625rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-available { background: #d1fae5; color: #065f46; }
+        .badge-busy { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-diproses { background: #dbeafe; color: #1e40af; }
+        .badge-selesai { background: #d1fae5; color: #065f46; }
+        .badge-dibatalkan { background: #f1f5f9; color: #64748b; }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--slate);
+            color: white;
+            padding: 0.875rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 320px;
+        }
+
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+
+        /* RATING STARS */
+        .star-rating { display: flex; gap: 4px; }
+        .star { cursor: pointer; font-size: 1.25rem; color: #cbd5e1; transition: color 0.15s; }
+        .star.active, .star:hover { color: #f59e0b; }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 200;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s;
+        }
+
+        .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 440px;
+            transform: scale(0.95);
+            transition: transform 0.25s;
+        }
+
+        .modal-overlay.show .modal { transform: scale(1); }
+
+        .modal h3 { font-family: 'Syne', sans-serif; font-size: 1.1rem; margin-bottom: 1rem; }
+
+        /* EMPTY STATE */
+        .empty-state { text-align: center; padding: 3rem 1rem; color: var(--gray); }
+        .empty-state .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+        .empty-state p { font-size: 0.875rem; }
+
+        /* ACTIONS CELL */
+        .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+        /* HERO DASHBOARD */
+        .hero-banner {
+            background: linear-gradient(135deg, var(--slate) 0%, var(--teal-dark) 100%);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::after {
+            content: '🧹';
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 5rem;
+            opacity: 0.15;
+        }
+
+        .hero-banner h1 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; }
+        .hero-banner p { opacity: 0.75; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+
+
+<!-- AUTH OVERLAY -->
+<div class="auth-overlay" id="auth-overlay">
+    <div class="auth-box">
+        <div class="auth-logo">Clean<span>Up</span></div>
+        <p class="auth-subtitle">Platform Jasa Cleaning Service Profesional</p>
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')">Masuk</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')">Daftar Akun</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div class="auth-form active" id="auth-form-login">
+            <div class="auth-error" id="login-error"></div>
+            <div class="auth-group">
+                <label>Email</label>
+                <input type="email" id="login-email" placeholder="email@domain.com">
+            </div>
+            <div class="auth-group">
+                <label>Password</label>
+                <input type="password" id="login-password" placeholder="Password kamu">
+            </div>
+            <button class="btn-auth" onclick="doLogin()">Masuk →</button>
+            <p style="text-align:center;font-size:0.75rem;color:#94a3b8;margin-top:1rem">
+                Akun demo: devi@email.com / devi123 (Pelanggan)<br>budi@cleanup.id / budi123 (Pekerja)
+            </p>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div class="auth-form" id="auth-form-register">
+            <div class="auth-error" id="register-error"></div>
+            <p style="font-size:0.8rem;font-weight:600;color:var(--slate-soft);margin-bottom:0.75rem">Daftar sebagai:</p>
+            <div class="role-picker">
+                <div class="role-card selected" id="role-pelanggan" onclick="selectRole('PELANGGAN')">
+                    <div class="role-icon">👤</div>
+                    <div class="role-label">Pelanggan</div>
+                    <div class="role-desc">Pesan layanan cleaning</div>
+                </div>
+                <div class="role-card" id="role-pekerja" onclick="selectRole('PEKERJA')">
+                    <div class="role-icon">🧑‍🔧</div>
+                    <div class="role-label">Pekerja</div>
+                    <div class="role-desc">Terima & kerjakan pesanan</div>
+                </div>
+            </div>
+            <div class="auth-group">
+                <label>Nama Lengkap</label>
+                <input type="text" id="reg-nama" placeholder="Nama kamu">
+            </div>
+            <div class="auth-group">
+                <label>Email</label>
+                <input type="email" id="reg-email" placeholder="email@domain.com">
+            </div>
+            <div class="auth-group">
+                <label>No. HP</label>
+                <input type="text" id="reg-nohp" placeholder="08xxxxxxxxxx">
+            </div>
+            <div class="auth-group">
+                <label>Password</label>
+                <input type="password" id="reg-password" placeholder="Buat password">
+            </div>
+            <button class="btn-auth" onclick="doRegister()">Buat Akun →</button>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="logo">Clean<span>Up</span></div>
+    <nav id="main-nav">
+        <!-- diisi dinamis setelah login -->
+    </nav>
+    <div class="nav-user" id="nav-user-area" style="display:none">
+        <div class="nav-user-info">
+            <div class="nav-user-name" id="nav-nama">—</div>
+            <span class="nav-user-role" id="nav-role-badge">—</span>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">Keluar</button>
+    </div>
+</header>
+
+<main>
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page">
+        <div class="hero-banner">
+            <h1>Selamat datang di CleanUp</h1>
+            <p>Sistem Manajemen Jasa Cleaning Service — real-time database H2</p>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🧽</div>
+                <div class="stat-value" id="stat-layanan">—</div>
+                <div class="stat-label">Total Layanan</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👤</div>
+                <div class="stat-value" id="stat-pelanggan">—</div>
+                <div class="stat-label">Pelanggan Terdaftar</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🧑‍🔧</div>
+                <div class="stat-value" id="stat-pekerja">—</div>
+                <div class="stat-label">Pekerja Aktif</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-value" id="stat-order">—</div>
+                <div class="stat-label">Total Order</div>
+            </div>
+        </div>
+        <div class="table-card">
+            <h2>📋 Order Terbaru</h2>
+            <div id="dashboard-orders"></div>
+        </div>
+    </div>
+
+    <!-- LAYANAN -->
+    <div id="page-layanan" class="page">
+        <div class="page-header">
+            <div><h1>Manajemen Layanan</h1><p>Kelola jenis-jenis layanan cleaning yang tersedia</p></div>
+        </div>
+        <div class="form-card">
+            <h2>➕ Tambah Layanan Baru</h2>
+            <div class="form-row three">
+                <div class="form-group"><label>Nama Layanan</label><input id="l-nama" placeholder="cth: Cleaning Rumah"></div>
+                <div class="form-group"><label>Harga Dasar (Rp)</label><input id="l-harga" type="number" placeholder="150000"></div>
+                <div class="form-group"><label>Deskripsi</label><input id="l-deskripsi" placeholder="Deskripsi singkat layanan"></div>
+            </div>
+            <button class="btn btn-primary" onclick="tambahLayanan()">➕ Tambah Layanan</button>
+        </div>
+        <div class="table-card">
+            <h2>📋 Daftar Layanan</h2>
+            <div id="table-layanan"></div>
+        </div>
+    </div>
+
+    <!-- PELANGGAN -->
+    <div id="page-pelanggan" class="page">
+        <div class="page-header">
+            <div><h1>Manajemen Pelanggan</h1><p>Data semua pelanggan yang terdaftar</p></div>
+        </div>
+        <div class="form-card">
+            <h2>➕ Daftar Pelanggan Baru</h2>
+            <div class="form-row">
+                <div class="form-group"><label>Nama Lengkap</label><input id="p-nama" placeholder="Nama pelanggan"></div>
+                <div class="form-group"><label>Email</label><input id="p-email" type="email" placeholder="email@domain.com"></div>
+                <div class="form-group"><label>No. HP</label><input id="p-nohp" placeholder="08xxxxxxxxxx"></div>
+                <div class="form-group"><label>Alamat</label><input id="p-alamat" placeholder="Alamat rumah"></div>
+                <div class="form-group"><label>Metode Pembayaran</label>
+                    <select id="p-metode">
+                        <option value="e-wallet">E-Wallet</option>
+                        <option value="transfer">Transfer Bank</option>
+                        <option value="cash">Cash</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Saldo Wallet (Rp)</label><input id="p-saldo" type="number" placeholder="0"></div>
+            </div>
+            <button class="btn btn-primary" onclick="daftarPelanggan()">➕ Daftarkan Pelanggan</button>
+        </div>
+        <div class="table-card">
+            <h2>👥 Daftar Pelanggan</h2>
+            <div id="table-pelanggan"></div>
+        </div>
+    </div>
+
+    <!-- PEKERJA -->
+    <div id="page-pekerja" class="page">
+        <div class="page-header">
+            <div><h1>Manajemen Pekerja</h1><p>Data semua pekerja cleaning profesional</p></div>
+        </div>
+        <div class="form-card">
+            <h2>➕ Daftarkan Pekerja Baru</h2>
+            <div class="form-row">
+                <div class="form-group"><label>Nama Lengkap</label><input id="wk-nama" placeholder="Nama pekerja"></div>
+                <div class="form-group"><label>Email</label><input id="wk-email" type="email" placeholder="email@domain.com"></div>
+                <div class="form-group"><label>No. HP</label><input id="wk-nohp" placeholder="08xxxxxxxxxx"></div>
+                <div class="form-group"><label>Keahlian (pisah koma)</label><input id="wk-keahlian" placeholder="Cleaning Rumah, Deep Cleaning"></div>
+            </div>
+            <button class="btn btn-primary" onclick="daftarPekerja()">➕ Daftarkan Pekerja</button>
+        </div>
+        <div class="table-card">
+            <h2>🧑‍🔧 Daftar Pekerja</h2>
+            <div id="table-pekerja"></div>
+        </div>
+    </div>
+
+    <!-- ORDER -->
+    <div id="page-order" class="page">
+        <div class="page-header">
+            <div><h1>Daftar Pesanan</h1><p>Kelola pesanan cleaning service</p></div>
+        </div>
+        <div class="form-card" id="form-buat-order">
+            <h2>📋 Buat Order Baru</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Pelanggan</label>
+                    <input id="o-pelanggan-nama" readonly style="background:#f1f5f9;cursor:default" placeholder="Nama akun kamu">
+                    <input type="hidden" id="o-pelanggan">
+                </div>
+                <div class="form-group"><label>Layanan</label><select id="o-layanan"></select></div>
+                <div class="form-group"><label>Pilih Pekerja</label><select id="o-pekerja"></select></div>
+                <div class="form-group"><label>Alamat Tujuan</label><input id="o-alamat" placeholder="Alamat yang akan dibersihkan"></div>
+            </div>
+            <button class="btn btn-primary" onclick="buatOrder()">📋 Buat Order</button>
+        </div>
+        <div class="table-card">
+            <h2>📦 Daftar Order</h2>
+            <div id="table-order"></div>
+        </div>
+    </div>
+
+    <!-- PEMBAYARAN -->
+    <div id="page-pembayaran" class="page">
+        <div class="page-header">
+            <div><h1>Manajemen Pembayaran</h1><p>Proses dan riwayat semua transaksi pembayaran</p></div>
+        </div>
+        <div class="form-card">
+            <h2>💳 Proses Pembayaran</h2>
+            <div class="form-row">
+                <div class="form-group"><label>Order</label><select id="pay-order"></select></div>
+                <div class="form-group"><label>Metode Pembayaran</label>
+                    <select id="pay-metode">
+                        <option value="e-wallet">E-Wallet</option>
+                        <option value="transfer">Transfer Bank</option>
+                        <option value="cash">Cash</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="prosesPembayaran()">💳 Proses Pembayaran</button>
+        </div>
+        <div class="table-card">
+            <h2>💰 Riwayat Pembayaran</h2>
+            <div id="table-pembayaran"></div>
+        </div>
+    </div>
+
+    <!-- PROFIL PEKERJA -->
+    <div id="page-profil" class="page">
+        <div class="page-header">
+            <div><h1>Profil & Rating Saya</h1><p>Lihat performa dan riwayat rating kamu</p></div>
+        </div>
+        <div id="profil-content"></div>
+    </div>
+
+</main>
+
+<!-- MODAL RATING -->
+<div class="modal-overlay" id="modal-rating">
+    <div class="modal">
+        <h3>⭐ Berikan Rating</h3>
+        <p style="font-size:0.85rem;color:#64748b;margin-bottom:1rem">Order ID: <span id="rating-order-id"></span></p>
+        <div class="form-group">
+            <label>Rating (klik bintang)</label>
+            <div class="star-rating" id="stars">
+                <span class="star" onclick="setRating(1)">★</span>
+                <span class="star" onclick="setRating(2)">★</span>
+                <span class="star" onclick="setRating(3)">★</span>
+                <span class="star" onclick="setRating(4)">★</span>
+                <span class="star" onclick="setRating(5)">★</span>
+            </div>
+        </div>
+        <div class="form-group" style="margin-top:0.75rem">
+            <label>Komentar</label>
+            <textarea id="rating-komentar" rows="3" placeholder="Tuliskan ulasan..."></textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem">
+            <button class="btn btn-primary" onclick="submitRating()">Kirim Rating</button>
+            <button class="btn" onclick="closeModal()" style="background:#f1f5f9">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+    const API = '';
+    let currentRatingOrderId = null;
+    let selectedRating = 0;
+    let currentUser = null;
+    let selectedRegisterRole = 'PELANGGAN';
+
+    // ====== AUTH FUNCTIONS ======
+    function switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach((t, i) => {
+            t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+        });
+        document.getElementById('auth-form-login').classList.toggle('active', tab === 'login');
+        document.getElementById('auth-form-register').classList.toggle('active', tab === 'register');
+    }
+
+    function selectRole(role) {
+        selectedRegisterRole = role;
+        document.getElementById('role-pelanggan').classList.toggle('selected', role === 'PELANGGAN');
+        document.getElementById('role-pekerja').classList.toggle('selected', role === 'PEKERJA');
+    }
+
+    async function doLogin() {
+        const email = document.getElementById('login-email').value.trim();
+        const password = document.getElementById('login-password').value;
+        const errEl = document.getElementById('login-error');
+        errEl.style.display = 'none';
+        if (!email || !password) { errEl.textContent = 'Email dan password wajib diisi'; errEl.style.display = 'block'; return; }
+        try {
+            const r = await fetch(API + '/api/auth/login', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ email, password })
+            });
+            const data = await r.json();
+            if (!r.ok) { errEl.textContent = data.error || 'Login gagal'; errEl.style.display = 'block'; return; }
+            onLoginSuccess(data);
+        } catch(e) { errEl.textContent = 'Koneksi gagal. Pastikan server berjalan.'; errEl.style.display = 'block'; }
+    }
+
+    async function doRegister() {
+        const nama = document.getElementById('reg-nama').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const noHP = document.getElementById('reg-nohp').value.trim();
+        const password = document.getElementById('reg-password').value;
+        const errEl = document.getElementById('register-error');
+        errEl.style.display = 'none';
+        if (!nama || !email || !password) { errEl.textContent = 'Nama, email, dan password wajib diisi'; errEl.style.display = 'block'; return; }
+        try {
+            const r = await fetch(API + '/api/auth/register', {
+                method: 'POST', headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({ nama, email, noHP, password, role: selectedRegisterRole })
+            });
+            const data = await r.json();
+            if (!r.ok) { errEl.textContent = data.error || 'Registrasi gagal'; errEl.style.display = 'block'; return; }
+            onLoginSuccess(data);
+        } catch(e) { errEl.textContent = 'Koneksi gagal. Pastikan server berjalan.'; errEl.style.display = 'block'; }
+    }
+
+    function onLoginSuccess(user) {
+        currentUser = user;
+        document.getElementById('auth-overlay').classList.add('hidden');
+        document.getElementById('nav-user-area').style.display = 'flex';
+        document.getElementById('nav-nama').textContent = user.nama;
+        const badge = document.getElementById('nav-role-badge');
+        badge.textContent = user.role === 'PELANGGAN' ? '👤 Pelanggan' : '🧑‍🔧 Pekerja';
+        badge.className = 'nav-user-role ' + (user.role === 'PELANGGAN' ? 'pelanggan' : 'pekerja');
+        buildNav(user.role);
+        showPageById('dashboard');
+        loadDashboard();
+    }
+
+    function buildNav(role) {
+        const nav = document.getElementById('main-nav');
+        if (role === 'PELANGGAN') {
+            nav.innerHTML = `
+                <button class="active" onclick="showPageById('dashboard')">🏠 Beranda</button>
+                <button onclick="showPageById('order')">📋 Pesanan Saya</button>
+                <button onclick="showPageById('pembayaran')">💳 Pembayaran</button>
+            `;
+        } else {
+            nav.innerHTML = `
+                <button class="active" onclick="showPageById('dashboard')">🏠 Beranda</button>
+                <button onclick="showPageById('order')">📋 Daftar Pesanan</button>
+                <button onclick="showPageById('layanan')">🧽 Layanan</button>
+                <button onclick="showPageById('profil')">⭐ Profil & Rating</button>
+            `;
+        }
+    }
+
+    function doLogout() {
+        currentUser = null;
+        document.getElementById('auth-overlay').classList.remove('hidden');
+        document.getElementById('nav-user-area').style.display = 'none';
+        document.getElementById('main-nav').innerHTML = '';
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+        document.getElementById('login-error').style.display = 'none';
+        switchAuthTab('login');
+    }
+
+    // ====== NAVIGATION ======
+    function showPageById(page) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('#main-nav button').forEach(b => b.classList.remove('active'));
+        const el = document.getElementById('page-' + page);
+        if (el) el.classList.add('active');
+        // mark active nav button
+        document.querySelectorAll('#main-nav button').forEach(b => {
+            if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + page + "'")) {
+                b.classList.add('active');
+            }
+        });
+        loadPage(page);
+    }
+
+    function showPage(page) {
+        showPageById(page);
+    }
+
+    function loadPage(page) {
+        const loaders = {
+            dashboard: loadDashboard,
+            layanan: loadLayanan,
+            pelanggan: loadPelanggan,
+            pekerja: loadPekerja,
+            order: loadOrder,
+            pembayaran: loadPembayaran,
+            profil: loadProfil
+        };
+        if (loaders[page]) loaders[page]();
+    }
+
+    // ====== TOAST ======
+    function toast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.className = `toast ${type} show`;
+        t.innerHTML = (type === 'success' ? '✅ ' : '❌ ') + msg;
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // ====== FETCH HELPERS ======
+    async function get(url) {
+        const r = await fetch(API + url);
+        return r.json();
+    }
+
+    async function post(url, data) {
+        const r = await fetch(API + url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return r.json();
+    }
+
+    async function put(url, data) {
+        const r = await fetch(API + url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return r.json();
+    }
+
+    async function del(url) {
+        const r = await fetch(API + url, { method: 'DELETE' });
+        return r.text();
+    }
+
+    function rp(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
+
+    function emptyState(msg) {
+        return `<div class="empty-state"><div class="empty-icon">📭</div><p>${msg}</p></div>`;
+    }
+
+    // ====== DASHBOARD ======
+    async function loadDashboard() {
+        const [layanan, pelanggan, pekerja, orders] = await Promise.all([
+            get('/api/layanan'), get('/api/pelanggan'), get('/api/pekerja'), get('/api/order')
+        ]);
+        const isPekerja = currentUser && currentUser.role === 'PEKERJA';
+        if (isPekerja) {
+            const profil = pekerja.find(p => p.email === currentUser.email);
+            const myOrders = orders.filter(o => o.pekerja && o.pekerja.email === currentUser.email);
+            document.getElementById('stat-layanan').textContent = layanan.length;
+            document.getElementById('stat-pelanggan').textContent = myOrders.length;
+            document.getElementById('stat-pekerja').textContent = profil ? (profil.rating ? '⭐ ' + profil.rating.toFixed(1) : '—') : '—';
+            document.getElementById('stat-order').textContent = myOrders.filter(o=>o.status==='selesai').length;
+            document.querySelector('#stat-pelanggan + .stat-label').textContent = 'Order Saya';
+            document.querySelector('#stat-pekerja + .stat-label').textContent = 'Rating Saya';
+            document.querySelector('#stat-order + .stat-label').textContent = 'Order Selesai';
+        } else {
+            document.getElementById('stat-layanan').textContent = layanan.length;
+            document.getElementById('stat-pelanggan').textContent = pelanggan.length;
+            document.getElementById('stat-pekerja').textContent = pekerja.length;
+            document.getElementById('stat-order').textContent = orders.length;
+            document.querySelector('#stat-pelanggan + .stat-label').textContent = 'Pelanggan Terdaftar';
+            document.querySelector('#stat-pekerja + .stat-label').textContent = 'Pekerja Aktif';
+            document.querySelector('#stat-order + .stat-label').textContent = 'Total Order';
+        }
+
+        const isPekerjaRole = currentUser && currentUser.role === 'PEKERJA';
+        const filteredOrders = isPekerjaRole
+            ? orders.filter(o => o.pekerja && o.pekerja.email === currentUser.email)
+            : orders;
+        const recent = filteredOrders.slice(-5).reverse();
+        const el = document.getElementById('dashboard-orders');
+        if (!recent.length) { el.innerHTML = emptyState('Belum ada order'); return; }
+        el.innerHTML = `<table>
+            <thead><tr><th>ID Order</th><th>Pelanggan</th><th>Layanan</th><th>Alamat</th><th>Status</th></tr></thead>
+            <tbody>${recent.map(o => `
+            <tr>
+                <td><code style="font-size:0.75rem;background:#f1f5f9;padding:2px 6px;border-radius:4px">${o.idOrder}</code></td>
+                <td>${o.pelanggan?.nama || '—'}</td>
+                <td>${o.layanan?.namaLayanan || '—'}</td>
+                <td>${o.alamatTujuan}</td>
+                <td><span class="badge badge-${o.status}">${o.status}</span></td>
+            </tr>`).join('')}</tbody></table>`;
+    }
+
+    // ====== LAYANAN ======
+    async function loadLayanan() {
+        const data = await get('/api/layanan');
+        const el = document.getElementById('table-layanan');
+        if (!data.length) { el.innerHTML = emptyState('Belum ada layanan'); return; }
+        el.innerHTML = `<table>
+            <thead><tr><th>ID</th><th>Nama Layanan</th><th>Harga Dasar</th><th>Deskripsi</th><th>Aksi</th></tr></thead>
+            <tbody>${data.map(l => `<tr>
+                <td><span style="font-size:0.75rem;color:#64748b">${l.idLayanan}</span></td>
+                <td><strong>${l.namaLayanan}</strong></td>
+                <td>${rp(l.hargaDasar)}</td>
+                <td>${l.deskripsi || '—'}</td>
+                <td><div class="actions">
+                    <button class="btn btn-danger btn-sm" onclick="hapusLayanan(${l.id})">🗑 Hapus</button>
+                </div></td>
+            </tr>`).join('')}</tbody></table>`;
+    }
+
+    async function tambahLayanan() {
+        const nama = document.getElementById('l-nama').value.trim();
+        const harga = document.getElementById('l-harga').value;
+        const desk = document.getElementById('l-deskripsi').value.trim();
+        if (!nama || !harga) return toast('Nama dan harga wajib diisi', 'error');
+        await post('/api/layanan', { namaLayanan: nama, hargaDasar: parseFloat(harga), deskripsi: desk });
+        toast('Layanan berhasil ditambahkan');
+        document.getElementById('l-nama').value = ''; document.getElementById('l-harga').value = ''; document.getElementById('l-deskripsi').value = '';
+        loadLayanan();
+    }
+
+    async function hapusLayanan(id) {
+        if (!confirm('Hapus layanan ini?')) return;
+        await del('/api/layanan/' + id);
+        toast('Layanan dihapus');
+        loadLayanan();
+    }
+
+    // ====== PELANGGAN ======
+    async function loadPelanggan() {
+        const data = await get('/api/pelanggan');
+        const el = document.getElementById('table-pelanggan');
+        if (!data.length) { el.innerHTML = emptyState('Belum ada pelanggan'); return; }
+        el.innerHTML = `<table>
+            <thead><tr><th>ID</th><th>Nama</th><th>Email</th><th>No. HP</th><th>Alamat</th><th>Saldo</th><th>Metode</th><th>Aksi</th></tr></thead>
+            <tbody>${data.map(p => `<tr>
+                <td style="font-size:0.75rem;color:#64748b">${p.idUser}</td>
+                <td><strong>${p.nama}</strong></td>
+                <td>${p.email}</td>
+                <td>${p.noHP}</td>
+                <td>${p.alamatTersimpan || '—'}</td>
+                <td>${rp(p.saldoWallet)}</td>
+                <td>${p.metodePembayaran}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="hapusPelanggan(${p.id})">🗑</button></td>
+            </tr>`).join('')}</tbody></table>`;
+    }
+
+    async function daftarPelanggan() {
+        const obj = { nama: document.getElementById('p-nama').value.trim(), email: document.getElementById('p-email').value.trim(), noHP: document.getElementById('p-nohp').value.trim(), alamatTersimpan: document.getElementById('p-alamat').value.trim(), metodePembayaran: document.getElementById('p-metode').value, saldoWallet: parseFloat(document.getElementById('p-saldo').value) || 0 };
+        if (!obj.nama || !obj.email) return toast('Nama dan email wajib diisi', 'error');
+        await post('/api/pelanggan', obj);
+        toast('Pelanggan berhasil didaftarkan');
+        ['p-nama','p-email','p-nohp','p-alamat','p-saldo'].forEach(id => document.getElementById(id).value = '');
+        loadPelanggan();
+    }
+
+    async function hapusPelanggan(id) {
+        if (!confirm('Hapus pelanggan ini?')) return;
+        await del('/api/pelanggan/' + id);
+        toast('Pelanggan dihapus');
+        loadPelanggan();
+    }
+
+    // ====== PEKERJA ======
+    async function loadPekerja() {
+        const data = await get('/api/pekerja');
+        const el = document.getElementById('table-pekerja');
+        if (!data.length) { el.innerHTML = emptyState('Belum ada pekerja'); return; }
+        el.innerHTML = `<table>
+            <thead><tr><th>ID</th><th>Nama</th><th>Email</th><th>No. HP</th><th>Rating</th><th>Status</th><th>Keahlian</th><th>Aksi</th></tr></thead>
+            <tbody>${data.map(p => `<tr>
+                <td style="font-size:0.75rem;color:#64748b">${p.idUser}</td>
+                <td><strong>${p.nama}</strong></td>
+                <td>${p.email}</td>
+                <td>${p.noHP}</td>
+                <td>⭐ ${p.rating ? p.rating.toFixed(1) : '—'}</td>
+                <td><span class="badge badge-${p.status}">${p.status}</span></td>
+                <td style="font-size:0.8rem">${(p.listKeahlian || []).join(', ') || '—'}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="hapusPekerja(${p.id})">🗑</button></td>
+            </tr>`).join('')}</tbody></table>`;
+    }
+
+    async function daftarPekerja() {
+        const keahlianStr = document.getElementById('wk-keahlian').value;
+        const obj = { nama: document.getElementById('wk-nama').value.trim(), email: document.getElementById('wk-email').value.trim(), noHP: document.getElementById('wk-nohp').value.trim(), listKeahlian: keahlianStr.split(',').map(s => s.trim()).filter(Boolean) };
+        if (!obj.nama || !obj.email) return toast('Nama dan email wajib diisi', 'error');
+        await post('/api/pekerja', obj);
+        toast('Pekerja berhasil didaftarkan');
+        ['wk-nama','wk-email','wk-nohp','wk-keahlian'].forEach(id => document.getElementById(id).value = '');
+        loadPekerja();
+    }
+
+    async function hapusPekerja(id) {
+        if (!confirm('Hapus pekerja ini?')) return;
+        await del('/api/pekerja/' + id);
+        toast('Pekerja dihapus');
+        loadPekerja();
+    }
+
+    // ====== PROFIL PEKERJA ======
+    async function loadProfil() {
+        if (!currentUser || currentUser.role !== 'PEKERJA') return;
+        const [pekerjaList, orders] = await Promise.all([get('/api/pekerja'), get('/api/order')]);
+        const profil = pekerjaList.find(p => p.email === currentUser.email);
+        const el = document.getElementById('profil-content');
+        if (!profil) { el.innerHTML = '<p>Data profil tidak ditemukan.</p>'; return; }
+
+        const myOrders = orders.filter(o => o.pekerja && o.pekerja.id === profil.id);
+        const ratedOrders = myOrders.filter(o => o.nilaiRating > 0);
+        const avgRating = ratedOrders.length
+            ? (ratedOrders.reduce((s, o) => s + o.nilaiRating, 0) / ratedOrders.length).toFixed(1)
+            : '—';
+
+        el.innerHTML = `
+            <div class="form-card" style="max-width:500px">
+                <h2>👤 ${profil.nama}</h2>
+                <p style="color:#64748b;font-size:0.9rem;margin-bottom:1.2rem">${profil.email} · ${profil.noHP || '—'}</p>
+                <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:1rem">
+                    <div style="text-align:center;background:#f8fafc;padding:1rem 1.5rem;border-radius:12px;min-width:100px">
+                        <div style="font-size:2rem;font-weight:700;color:#7c3aed">⭐ ${avgRating}</div>
+                        <div style="font-size:0.8rem;color:#64748b">Rating Rata-rata</div>
+                    </div>
+                    <div style="text-align:center;background:#f8fafc;padding:1rem 1.5rem;border-radius:12px;min-width:100px">
+                        <div style="font-size:2rem;font-weight:700;color:#0ea5e9">${myOrders.length}</div>
+                        <div style="font-size:0.8rem;color:#64748b">Total Order</div>
+                    </div>
+                    <div style="text-align:center;background:#f8fafc;padding:1rem 1.5rem;border-radius:12px;min-width:100px">
+                        <div style="font-size:2rem;font-weight:700;color:#10b981">${myOrders.filter(o=>o.status==='selesai').length}</div>
+                        <div style="font-size:0.8rem;color:#64748b">Order Selesai</div>
+                    </div>
+                </div>
+                <p style="font-size:0.85rem"><strong>Status:</strong> <span class="badge badge-${profil.status}">${profil.status}</span></p>
+                <p style="font-size:0.85rem"><strong>Keahlian:</strong> ${(profil.listKeahlian||[]).join(', ') || '—'}</p>
+            </div>
+            ${ratedOrders.length ? `
+            <div class="table-card" style="margin-top:1.5rem">
+                <h2>⭐ Riwayat Rating</h2>
+                <table>
+                    <thead><tr><th>ID Order</th><th>Pelanggan</th><th>Layanan</th><th>Rating</th><th>Komentar</th></tr></thead>
+                    <tbody>${ratedOrders.map(o => `<tr>
+                        <td><code style="font-size:0.75rem">${o.idOrder}</code></td>
+                        <td>${o.pelanggan?.nama || '—'}</td>
+                        <td>${o.layanan?.namaLayanan || '—'}</td>
+                        <td>${'⭐'.repeat(o.nilaiRating)}</td>
+                        <td style="font-size:0.85rem">${o.komentar || '<span style="color:#94a3b8">—</span>'}</td>
+                    </tr>`).join('')}</tbody>
+                </table>
+            </div>` : '<p style="color:#94a3b8;margin-top:1rem">Belum ada rating masuk.</p>'}
+        `;
+    }
+
+    // ====== ORDER ======
+    async function loadOrder() {
+        const [data, pelanggan, layanan, pekerjaList] = await Promise.all([
+            get('/api/order'), get('/api/pelanggan'), get('/api/layanan'), get('/api/pekerja')
+        ]);
+
+        // Sembunyikan form "Buat Order Baru" jika login sebagai Pekerja
+        const isPekerja = currentUser && currentUser.role === 'PEKERJA';
+        const formBuatOrder = document.getElementById('form-buat-order');
+        if (formBuatOrder) formBuatOrder.style.display = isPekerja ? 'none' : '';
+
+        // Auto-fill pelanggan dari akun yang login
+        const selP = document.getElementById('o-pelanggan');
+        const selPNama = document.getElementById('o-pelanggan-nama');
+        const currentPelanggan = pelanggan.find(p => p.email === currentUser.email);
+        if (selP && currentPelanggan) {
+            selP.value = currentPelanggan.id;
+            if (selPNama) selPNama.value = currentPelanggan.nama;
+        }
+        const selL = document.getElementById('o-layanan');
+        const selWk = document.getElementById('o-pekerja');
+        selL.innerHTML = layanan.map(l => `<option value="${l.id}">${l.namaLayanan} — ${rp(l.hargaDasar)}</option>`).join('');
+        const available = pekerjaList.filter(p => p.status === 'available');
+        selWk.innerHTML = available.length
+            ? available.sort((a,b) => (b.rating||0)-(a.rating||0))
+                .map(p => `<option value="${p.id}">${p.nama} ⭐${p.rating ? p.rating.toFixed(1) : 'Baru'} (${p.status})</option>`).join('')
+            : '<option value="">— Tidak ada pekerja tersedia —</option>';
+
+        // Filter order sesuai role
+        const myData = isPekerja
+            ? data.filter(o => o.pekerja && o.pekerja.email === currentUser.email)
+            : data.filter(o => o.pelanggan && o.pelanggan.email === currentUser.email);
+
+        const el = document.getElementById('table-order');
+        if (!myData.length) { el.innerHTML = emptyState('Belum ada order'); return; }
+        el.innerHTML = `<table>
+            <thead><tr><th>ID Order</th><th>Pelanggan</th><th>Pekerja</th><th>Layanan</th><th>Alamat</th><th>Status</th><th>Rating</th><th>Aksi</th></tr></thead>
+            <tbody>${myData.map(o => `<tr>
+                <td><code style="font-size:0.72rem;background:#f1f5f9;padding:2px 6px;border-radius:4px">${o.idOrder}</code></td>
+                <td>${o.pelanggan?.nama || '—'}</td>
+                <td>${o.pekerja?.nama || '<span style="color:#94a3b8">Belum ada</span>'}</td>
+                <td>${o.layanan?.namaLayanan || '—'}</td>
+                <td style="font-size:0.8rem">${o.alamatTujuan}</td>
+                <td><span class="badge badge-${o.status}">${o.status}</span></td>
+                <td>${o.nilaiRating ? '⭐'.repeat(o.nilaiRating) : '—'}</td>
+                <td><div class="actions">
+                    ${o.status === 'diproses' ? `<button class="btn btn-success btn-sm" onclick="selesaikanOrder(${o.id})">✅ Selesai</button>` : ''}
+                    ${!isPekerja && o.status === 'selesai' && !o.nilaiRating ? `<button class="btn btn-warning btn-sm" onclick="openRating(${o.id}, '${o.idOrder}')">⭐ Rating</button>` : ''}
+                    ${!isPekerja && (o.status === 'pending' || o.status === 'diproses') ? `<button class="btn btn-danger btn-sm" onclick="batalOrder(${o.id})">✖ Batal</button>` : ''}
+                </div></td>
+            </tr>`).join('')}</tbody></table>`;
+
+        // Populate order dropdown di pembayaran
+        const myDataFull = data.filter(o => o.pelanggan && o.pelanggan.email === currentUser.email);
+        const selPay = document.getElementById('pay-order');
+        const orderSelesai = (typeof myDataFull !== 'undefined' ? myDataFull : data).filter(o => o.status === 'selesai');
+        selPay.innerHTML = orderSelesai.length
+            ? orderSelesai.map(o => `<option value="${o.id}">${o.idOrder} — ${o.pelanggan?.nama} — ${rp(o.layanan?.hargaDasar || 0)}</option>`).join('')
+            : '<option>— Tidak ada order selesai —</option>';
+    }
+
+    async function buatOrder() {
+        const pekerjaEl = document.getElementById('o-pekerja');
+        // Ambil pelangganId dari hidden input; fallback cari dari API berdasarkan email login
+        let pelangganId = document.getElementById('o-pelanggan').value;
+        if (!pelangganId) {
+            const allPelanggan = await get('/api/pelanggan');
+            const found = allPelanggan.find(p => p.email === currentUser.email);
+            if (!found) return toast('Data pelanggan tidak ditemukan', 'error');
+            pelangganId = found.id;
+        }
+        const obj = {
+            pelangganId,
+            layananId: document.getElementById('o-layanan').value,
+            alamatTujuan: document.getElementById('o-alamat').value.trim(),
+            pekerjaId: pekerjaEl && pekerjaEl.value ? pekerjaEl.value : null
+        };
+        if (!obj.alamatTujuan) return toast('Alamat tujuan wajib diisi', 'error');
+        const result = await post('/api/order', obj);
+        toast(result.pekerja ? `Order dibuat! Pekerja: ${result.pekerja.nama}` : 'Order dibuat, menunggu pekerja');
+        document.getElementById('o-alamat').value = '';
+        loadOrder();
+    }
+
+    async function selesaikanOrder(id) {
+        await put('/api/order/' + id + '/status', { status: 'selesai' });
+        toast('Order ditandai selesai');
+        loadOrder();
+    }
+
+    async function batalOrder(id) {
+        if (!confirm('Batalkan order ini?')) return;
+        await del('/api/order/' + id);
+        toast('Order dibatalkan');
+        loadOrder();
+    }
+
+    // ====== RATING ======
+    function openRating(id, idOrder) {
+        currentRatingOrderId = id;
+        selectedRating = 0;
+        document.getElementById('rating-order-id').textContent = idOrder;
+        document.getElementById('rating-komentar').value = '';
+        document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+        document.getElementById('modal-rating').classList.add('show');
+    }
+
+    function closeModal() { document.getElementById('modal-rating').classList.remove('show'); }
+
+    function setRating(n) {
+        selectedRating = n;
+        document.querySelectorAll('.star').forEach((s, i) => {
+            s.classList.toggle('active', i < n);
+        });
+    }
+
+    async function submitRating() {
+        if (!selectedRating) return toast('Pilih rating bintang dulu', 'error');
+        const komentar = document.getElementById('rating-komentar').value;
+        await put('/api/order/' + currentRatingOrderId + '/rating', { nilai: selectedRating, komentar });
+        toast('Rating berhasil disimpan ⭐');
+        closeModal();
+        loadOrder();
+    }
+
+    // ====== PEMBAYARAN ======
+    async function loadPembayaran() {
+        const data = await get('/api/pembayaran');
+        const el = document.getElementById('table-pembayaran');
+        if (!data.length) { el.innerHTML = emptyState('Belum ada transaksi pembayaran'); return; }
+        el.innerHTML = `<table>
+            <thead><tr><th>ID Pembayaran</th><th>Order</th><th>Pelanggan</th><th>Metode</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody>${data.map(p => `<tr>
+                <td><code style="font-size:0.72rem;background:#f1f5f9;padding:2px 6px;border-radius:4px">${p.idPembayaran}</code></td>
+                <td style="font-size:0.8rem">${p.order?.idOrder || '—'}</td>
+                <td>${p.order?.pelanggan?.nama || '—'}</td>
+                <td>${p.metode}</td>
+                <td><strong>${rp(p.totalBayar)}</strong></td>
+                <td><span class="badge badge-${p.statusPembayaran === 'berhasil' ? 'selesai' : 'pending'}">${p.statusPembayaran}</span></td>
+            </tr>`).join('')}</tbody></table>`;
+    }
+
+    async function prosesPembayaran() {
+        const orderId = document.getElementById('pay-order').value;
+        const metode = document.getElementById('pay-metode').value;
+        if (!orderId || orderId.includes('—')) return toast('Pilih order yang valid', 'error');
+        const result = await post('/api/pembayaran', { orderId, metode });
+        if (result.idPembayaran) {
+            toast(`Pembayaran berhasil! ${rp(result.totalBayar)}`);
+            loadPembayaran();
+            loadOrder();
+        } else {
+            toast('Gagal memproses pembayaran', 'error');
+        }
+    }
+
+    // ====== INIT ======
+    // Auth overlay shown on load; app starts after login
+</script>
+</body>
+</html>
